@@ -1,0 +1,108 @@
+:root { 
+    --gap: 14px; 
+    --radius: 14px; 
+}
+
+* { 
+    box-sizing: border-box; 
+}
+
+body { 
+    font-family: system-ui, Arial, sans-serif; 
+    margin: 0; 
+    padding: 24px; 
+    background: #f6f7fb; 
+}
+.container { 
+    max-width: 980px; 
+    margin: 0 auto; 
+    background: #fff; 
+    padding: 24px; 
+    border-radius: var(--radius); 
+    box-shadow: 0 10px 24px rgba(0,0,0,.06); 
+}
+
+h1 { 
+    margin-top: 0; 
+}
+
+label { 
+    display: block; 
+    margin-top: var(--gap); 
+    font-weight: 600; 
+}
+
+input, textarea, select { 
+    width: 100%; 
+    padding: 12px; 
+    border-radius: 10px; 
+    border: 1px solid #dfe3ea; 
+}
+
+button { 
+    padding: 10px 16px; 
+    border: 0; 
+    border-radius: 10px; 
+    cursor: pointer; 
+}
+
+button.primary { 
+    background: black; 
+    color: white; 
+}
+.card { 
+    background:#fafbfe; 
+    padding:16px; 
+    border:1px solid #eceff6; 
+    border-radius:12px; 
+    margin-top:var(--gap); 
+}
+
+.table { 
+    width:100%; 
+    border-collapse: collapse; 
+    margin-top: var(--gap); 
+}
+
+.table th, .table td { 
+    padding: 10px; 
+    border-bottom: 1px solid #eee; 
+    text-align: left; 
+}
+
+.badge { 
+    padding:2px 8px; 
+    border-radius:999px; 
+    font-size: 12px; 
+    border:1px solid #eee; 
+}
+
+.badge.OPEN{ 
+    background:#fff7ed; 
+}
+
+.badge.IN_PROGRESS{ 
+    background:#eef6ff; 
+}
+
+.badge.RESOLVED{ 
+    background:#ecfdf5; 
+}
+
+.flex { 
+    display:flex; 
+    gap: var(--gap); 
+    align-items:center; 
+}
+
+.justify-between { 
+    justify-content: space-between; 
+}
+
+.hidden { 
+    display:none; 
+}
+
+a { 
+    text-decoration: none; 
+}

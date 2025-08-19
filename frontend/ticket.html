@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ticket Details</title>
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <script defer src="assets/app.js"></script>
+</head>
+<body onload="requireLogin()">
+  <div class="container">
+    <div class="flex justify-between">
+      <h1>Ticket Details</h1>
+      <a href="tickets.html">Back to list</a>
+    </div>
+
+    <div class="card" id="ticketCard">Loading...</div>
+
+    <div class="card">
+      <h3>Assign</h3>
+      <div class="flex">
+        <select id="assignee"></select>
+        <button id="assignBtn">Assign</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Add Comment</h3>
+      <textarea id="comment" rows="3" placeholder="Write a comment..."></textarea>
+      <div style="margin-top:10px;">
+        <button id="commentBtn">Post Comment</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Upload Attachment</h3>
+      <input type="file" id="file"/>
+      <div style="margin-top:10px;">
+        <button id="uploadBtn">Upload</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Comments</h3>
+      <div id="comments"></div>
+    </div>
+
+    <div class="card">
+      <h3>Attachments</h3>
+      <div id="attachments"></div>
+    </div>
+  </div>
+
+  <script>
+    const qs = new URLSearchParams(window.location.search);
+    const id = Number(qs.get('id'));
+    const user = getUser();
+    const isTech = user && (user.role === 'TECH' || user.role === 'ADMIN');
+
+    async function loadTicket(){
+      const t = await api(`/api/tickets/${id}`);
+      document.getElementById('ticketCard').innerHTML = `
+        <div class="flex justify-between">
+          <div>
+            <div><strong>#${t.id} – ${t.title}</strong></div>
+            <div>${t.description}</div>
+          </div>
+          <div>${renderStatusBadge(t.status)}</div>
+        </div>
+      `;
+
+      // comments
+      document.getElementById('comments').innerHTML = t.comments.map(c => `
+        <div class="card">
+          <div><strong>${c.user?.name || c.user_id}</strong> • ${new Date(c.created_at).toLocaleString()}</div>
+          <div>${c.content}</div>
+        </div>
+      `).join('') || '<em>No comments yet</em>';
+
+      // attachments
+      document.getElementById('attachments').innerHTML = t.attachments.map(a => `
+        <div><a href="${API_BASE}${a.path}" target="_blank">📎 ${a.filename}</a></div>
+      `).join('') || '<em>No attachments</em>';
+
+      // assignment
+      document.querySelector('.card select#assignee').disabled = !isTech;
+      document.getElementById('assignBtn').disabled = !isTech;
+      if(isTech){
+        const techs = await api('/api/users?role=TECH');
+        const admins = await api('/api/users?role=ADMIN');
+        const options = [...techs, ...admins];
+        const sel = document.getElementById('assignee');
+        sel.innerHTML = '<option value="">Unassigned</option>' + options.map(u => `<option value="${u.id}" ${u.id===t.assignee_id?'selected':''}>${u.name} (${u.role})</option>`).join('');
+      } else {
+        document.getElementById('assignee').innerHTML = '<option>(Tech/Admin only)</option>';
+      }
+    }
+
+    document.getElementById('commentBtn').addEventListener('click', async () => {
+      try {
+        const content = document.getElementById('comment').value.trim();
+        if(!content) return alert('Write something first.');
+        await api(`/api/tickets/${id}/comments`, { method:'POST', body:{ content } });
+        document.getElementById('comment').value='';
+        await loadTicket();
+      } catch(e){ alert(e.message); }
+    });
+
+    document.getElementById('uploadBtn').addEventListener('click', async () => {
+      try {
+        const file = document.getElementById('file').files[0];
+        if(!file) return alert('Choose a file first.');
+        const fd = new FormData();
+        fd.append('file', file);
+        await api(`/api/tickets/${id}/attachments`, { method:'POST', formData: fd });
+        document.getElementById('file').value='';
+        await loadTicket();
+      } catch(e){ alert(e.message); }
+    });
+
+    document.getElementById('assignBtn').addEventListener('click', async () => {
+      try {
+        const assignee_id = Number(document.getElementById('assignee').value);
+        if(!assignee_id) { alert('Select a tech/admin'); return; }
+        await api(`/api/tickets/${id}/assign`, { method:'POST', body:{ assignee_id } });
+        await loadTicket();
+      } catch(e){ alert(e.message); }
+    });
+
+    loadTicket();
+  </script>
+</body>
+</html>

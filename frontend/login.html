@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Campus – Login</title>
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <script defer src="assets/app.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Login</h1>
+    <div class="card">
+      <label>Email</label>
+      <input id="email" type="email" placeholder="newton@student.test"/>
+      <label>Password</label>
+      <input id="password" type="password" placeholder="••••••"/>
+      <div style="margin-top:14px;" class="flex justify-between">
+        <button class="primary" id="loginBtn">Sign in</button>
+        <small>Try demo users.</small>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      try {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const data = await api('/api/auth/login', { method:'POST', body:{ email, password } });
+        setAuth(data.token, data.user);
+        window.location.href = 'submit.html';
+      } catch(e){ alert(e.message); }
+    });
+  </script>
+</body>
+</html>

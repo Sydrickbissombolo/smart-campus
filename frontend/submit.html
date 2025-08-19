@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Submit Ticket</title>
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <script defer src="assets/app.js"></script>
+</head>
+<body onload="requireLogin()">
+  <div class="container">
+    <div class="flex justify-between">
+      <h1>Submit a Ticket</h1>
+      <a href="tickets.html">View Tickets</a>
+    </div>
+    <div class="card">
+      <label>Title</label>
+      <input id="title" placeholder="Can't connect to Wi‑Fi"/>
+      <label>Description</label>
+      <textarea id="description" rows="5" placeholder="Describe your issue..."></textarea>
+      <div style="margin-top:14px;">
+        <button class="primary" id="sendBtn">Send Ticket</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.getElementById('sendBtn').addEventListener('click', async () => {
+      try {
+        const title = document.getElementById('title').value.trim();
+        const description = document.getElementById('description').value.trim();
+        const t = await api('/api/tickets', { method:'POST', body:{ title, description } });
+        alert(`Ticket #${t.id} created!`);
+        window.location.href = 'tickets.html';
+      } catch(e){ alert(e.message); }
+    });
+  </script>
+</body>
+</html>

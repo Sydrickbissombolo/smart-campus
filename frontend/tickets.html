@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tickets</title>
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <script defer src="assets/app.js"></script>
+</head>
+<body onload="requireLogin()">
+  <div class="container">
+    <div class="flex justify-between">
+      <h1>Tickets</h1>
+      <div class="flex">
+        <a href="submit.html">New Ticket</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="flex" style="gap:8px; align-items:center;">
+        <label>Status filter</label>
+        <select id="status">
+          <option value="">All</option>
+          <option>OPEN</option>
+          <option>IN_PROGRESS</option>
+          <option>RESOLVED</option>
+        </select>
+        <label class="flex" style="gap:6px; align-items:center;">
+          <input type="checkbox" id="myOnly"/> My tickets
+        </label>
+        <button id="loadBtn">Load</button>
+      </div>
+
+      <table class="table" id="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Assignee</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const user = getUser();
+    const isTech = user && (user.role === 'TECH' || user.role === 'ADMIN');
+
+    async function load(){
+      try {
+        const p = new URLSearchParams();
+        const s = document.getElementById('status').value;
+        const my = document.getElementById('myOnly').checked;
+        if(s) p.set('status', s);
+        if(my) p.set('my', '1');
+        const rows = await api('/api/tickets' + (p.toString()?`?${p.toString()}`:''));
+        const tbody = document.querySelector('#table tbody');
+        tbody.innerHTML = rows.map(t => `
+          <tr>
+            <td>#${t.id}</td>
+            <td><a href="ticket.html?id=${t.id}">${t.title}</a></td>
+            <td>${renderStatusBadge(t.status)}</td>
+            <td>${t.assignee_id ?? '-'}</td>
+            <td>${new Date(t.created_at).toLocaleString()}</td>
+            <td>
+              ${isTech ? actionButtons(t) : ''}
+            </td>
+          </tr>
+        `).join('');
+      } catch(e){ alert(e.message); }
+    }
+
+    function actionButtons(t){
+      return `
+        <select id="s-${t.id}">
+          <option ${t.status==='OPEN'?'selected':''}>OPEN</option>
+          <option ${t.status==='IN_PROGRESS'?'selected':''}>IN_PROGRESS</option>
+          <option ${t.status==='RESOLVED'?'selected':''}>RESOLVED</option>
+        </select>
+        <button onclick="updateStatus(${t.id})">Update</button>
+      `;
+    }
+
+    async function updateStatus(id){
+      const status = document.getElementById(`s-${id}`).value;
+      try { await api(`/api/tickets/${id}`, { method:'PATCH', body:{ status } }); load(); }
+      catch(e){ alert(e.message); }
+    }
+
+    document.getElementById('loadBtn').addEventListener('click', load);
+    load();
+  </script>
+</body>
+</html>
